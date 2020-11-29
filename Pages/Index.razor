@@ -1,0 +1,28 @@
+﻿@page "/"
+
+@inject HttpClient Http
+
+@((MarkupString)markup)
+
+
+<h1>Hello, world!</h1>
+
+Welcome to your new app.
+
+<SurveyPrompt Title="How is Blazor working for you?" />
+
+
+@code{
+    string markdown = @"# New Features!
+
+- Import a HTML file and watch it magically convert to Markdown
+- Drag and drop images (requires your Dropbox account be linked)";
+
+    string markup = "";
+    protected override async Task OnInitializedAsync()
+    {
+        markdown = await
+            Http.GetStringAsync("https://raw.githubusercontent.com/markdown-it/markdown-it/master/support/demo_template/sample.md");
+        markup = Markdown.ToHtml(markdown);
+    }
+}

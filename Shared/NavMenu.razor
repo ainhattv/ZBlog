@@ -1,0 +1,57 @@
+﻿@inject IGitHubService _githubService
+@using System.IO
+@using System.Web
+
+<div class="navbar text-white">
+    <Author></Author>
+
+    <button class="navbar-toggler" @onclick="ToggleNavMenu">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+</div>
+
+<div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
+    <form class="form-group px-3 pt-3">
+        <input class="form-control" type="search" placeholder="Search" aria-label="Search">
+    </form>
+    <ul class="nav flex-column">
+
+        @if (articles != null && articles.Count() > 0)
+        {
+            @foreach (var article in articles)
+            {
+                <li class="nav-item px-3">
+                    <NavLink class="nav-link" href="@EncodeUri(article.Name)" Match="NavLinkMatch.All">
+                        <span class="oi oi-home" aria-hidden="true"></span> @RemoveExtension(article.Name)
+                    </NavLink>
+                </li>
+            }
+        }
+    </ul>
+</div>
+
+@code {
+    private bool collapseNavMenu = true;
+    private string NavMenuCssClass => collapseNavMenu ? "collapse" : null;
+    private IEnumerable<ArticleContentModel> articles;
+
+    protected override async Task OnInitializedAsync()
+    {
+        articles = await _githubService.GetArticlesAsync(ArticleContentType.File);
+    }
+
+    private void ToggleNavMenu()
+    {
+        collapseNavMenu = !collapseNavMenu;
+    }
+
+    private string EncodeUri(string articleName){
+        articleName = RemoveExtension(articleName);
+        var param = Setting.PostUri(articleName);
+        return param;
+    }
+
+    private string RemoveExtension(string fileName){
+        return Path.GetFileNameWithoutExtension(fileName);
+    }
+}

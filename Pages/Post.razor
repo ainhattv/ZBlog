@@ -1,0 +1,48 @@
+@page "/posts/{PageName}"
+
+@inject HttpClient httpClient
+@inject IGitHubService _githubService
+@using System.Web
+@inject NavigationManager NavManager
+
+@((MarkupString)_markup)
+
+@code{
+    [Parameter]
+    public string PageName { get; set; }
+
+    private string _markdown;
+
+    private string _markup;
+
+    private ArticleContentModel _selectedArticle;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetArtilceAsync();
+
+        if (_selectedArticle == null)
+        {
+            NavManager.NavigateTo("/");
+        }
+
+        Console.WriteLine(_selectedArticle.GitUrl);
+
+        _markdown = await httpClient.GetStringAsync(_selectedArticle.DownloadUrl);
+        _markup = Markdown.ToHtml(_markdown);
+    }
+
+    private async Task GetArtilceAsync()
+    {
+        if (String.IsNullOrEmpty(PageName))
+        {
+            NavManager.NavigateTo("/");
+        }
+
+        var fileName = PageName + ".md";
+
+        var articles = await _githubService.GetArticlesAsync(ArticleContentType.File);
+
+        _selectedArticle = articles.SingleOrDefault(x => x.Name.ToUpper() == fileName.ToUpper());
+    }
+}
